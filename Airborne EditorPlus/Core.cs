@@ -2,7 +2,7 @@
 using MelonLoader;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(Airborne_EditorPlus.EditorPlus), "Airborne Editor+", "1.0.0", "Reimeiko", null)]
+[assembly: MelonInfo(typeof(Airborne_EditorPlus.EditorPlus), "Airborne Editor+", "0.0.1", "Reimeiko", null)]
 [assembly: MelonGame("bl4ckdev x XDev", "Airborne")]
 
 namespace Airborne_EditorPlus
