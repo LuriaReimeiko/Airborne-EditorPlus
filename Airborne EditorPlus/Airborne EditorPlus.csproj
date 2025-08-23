@@ -320,5 +320,6 @@
 	
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="COPY &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Airborne Files\Mods&quot;" />
+		<Exec Command="CALL &quot;C:\Program Files (x86)\Steam\steamapps\common\Airborne Files\Airborne.exe&quot;" />
 	</Target>
 </Project>
