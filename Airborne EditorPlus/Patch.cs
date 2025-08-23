@@ -11,9 +11,9 @@ namespace Airborne_EditorPlus
 		Tools tools = new Tools();
 		public void OverrideVanillaHotkeys()
 		{
-			if (editorControls.pstate == EditorControls.PlayState.stop && !editorControls.cantContinue) // i still dont know what cantContinue is but i'll trust
-			{
-				if (Input.GetKeyDown(KeyCode.U) && editorControls.upload.interactable) tools.ChangeActiveState(editorControls.uploadPanel);
+			if (editorControls.pstate == EditorControls.PlayState.stop) // i never should've trusted cantContinue
+            {
+                    if (Input.GetKeyDown(KeyCode.U) && editorControls.upload.interactable) tools.ChangeActiveState(editorControls.uploadPanel);
 				else if (Input.GetKeyDown(KeyCode.M)) EnableSettings();
 				else if (Input.GetKeyDown(KeyCode.P)) Play();
 
