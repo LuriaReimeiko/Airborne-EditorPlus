@@ -15,7 +15,7 @@ namespace Airborne_EditorPlus
 		public void SelectObject()
 		{
 			Ray ray = editorControls.mainCam.ScreenPointToRay(Input.mousePosition);
-			RaycastHit2D hit;
+			RaycastHit hit;
 			
 			if (Physics.Raycast(ray, out hit, Mathf.Infinity, editorControls.selectIgnore))
 			{
