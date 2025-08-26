@@ -9,7 +9,8 @@ namespace Airborne_EditorPlus
 {
 	public class EditorPlus : MelonMod
 	{
-		private bool isModEnabled;
+		static public bool enabled;
+		public float snapSize = 1f;
 
 		static public GameObject Properties;
 		static public GameObject UploadPanel;
@@ -20,7 +21,8 @@ namespace Airborne_EditorPlus
 #region Enable mod
 		public override void OnInitializeMelon()
 		{
-			isModEnabled = false;
+			enabled = false;
+			AssetBundle.LoadFromFileAsync("Grid.shader");
 		}
 
 		public override void OnSceneWasInitialized(int buildIndex, string sceneName)
@@ -29,14 +31,15 @@ namespace Airborne_EditorPlus
 
 			if (sceneName == "ActualEditor" && editorControls.pstate == EditorControls.PlayState.stop)
 			{
-				if (!isModEnabled) LoggerInstance.Msg("Editor+ is now Enabled.");
-				isModEnabled = true;
+				if (!enabled) LoggerInstance.Msg("Editor+ is now Enabled.");
+				enabled = true;
 				GetStuff();
+				OnLoad();
 			}
 			else
 			{
-				if (isModEnabled) LoggerInstance.Msg("Editor+ is now Disabled.");
-				isModEnabled = false;
+				if (enabled) LoggerInstance.Msg("Editor+ is now Disabled.");
+				enabled = false;
 			}
 		}
 #endregion
@@ -62,26 +65,31 @@ namespace Airborne_EditorPlus
 		}
 		#endregion
 
-#region Update
+		#region Mod
+		private readonly Tools tool = new Tools();
+		
+		private void OnLoad()
+		{
+			//TiledGrid tiledGrid = new();
+			//tiledGrid.Load();
+		}
+
 		public override void OnUpdate()
 		{
-			if (!isModEnabled) return;
-			var Vanilla = new VanillaBehaviour();
+			if (!enabled) return;
+			VanillaBehaviour Vanilla = new();
 
-
-			Vanilla.OverrideVanillaHotkeys();
-
+			// Do modded stuff before vanilla stuff becuz i made it that way
 			if (editorControls.pstate == EditorControls.PlayState.stop)
 			{
 				ModHotkeys();
 			}
-			//HandleZoom();
+			
+			Vanilla.OverrideUpdate();
 		}
 
 		private void ModHotkeys()
 		{
-			var tool = new Tools();
-
 			#region All
 
 			if (Input.GetKey(KeyCode.Space))

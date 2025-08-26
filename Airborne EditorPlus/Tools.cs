@@ -1,12 +1,14 @@
-﻿using Il2Cpp;
+﻿using Airborne_EditorPlus;
+using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 
 namespace Airborne_EditorPlus
 {
 	public class Tools : MelonMod
 	{
-		EditorControls editorControls = EditorPlus.editorControls;
+		readonly EditorControls editorControls = EditorPlus.editorControls;
 		public void ChangeActiveState(GameObject obj)
 		{
 			obj.SetActive(!obj.activeSelf);
@@ -14,25 +16,31 @@ namespace Airborne_EditorPlus
 
 		public void SelectObject()
 		{
-			Ray ray = editorControls.mainCam.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
-			
-			if (Physics.Raycast(ray, out hit, Mathf.Infinity, editorControls.selectIgnore))
+
+			if (Physics.Raycast(new Vector3(editorControls.mousePos.x, editorControls.mousePos.y, -27), editorControls.transform.forward, out hit, Mathf.Infinity, editorControls.selectIgnore))
 			{
-				if (Array.IndexOf(editorControls.lastSelectedArray, hit.transform.root.gameObject) != -1) return;
 
-				editorControls.DeselectPortal();
-				editorControls.UIType = EditorControls.uType.none;
-				editorControls.SetUI(true);
-
-				if (Input.GetKey(KeyCode.LeftControl))
+				if (Array.IndexOf(editorControls.lastSelectedArray, hit.transform.root.gameObject) == -1)
 				{
-					editorControls.Select(hit.transform.root.gameObject, true);
+					if (!Input.GetKey(KeyCode.LeftControl))
+					{
+						editorControls.Deselect();
+						editorControls.DeselectPortal();
+						editorControls.Select(hit.transform.root.gameObject, false);
+					}
+					else editorControls.Select(hit.transform.root.gameObject, true);
 				}
 				else
 				{
+					List<GameObject> t = editorControls.lastSelectedArray.ToList();
+					t.Remove(hit.transform.root.gameObject);
 					editorControls.Deselect();
-					editorControls.Select(hit.transform.root.gameObject, false);
+					editorControls.DeselectPortal();
+					for (int i = 0; i < t.Count; i++)
+					{
+						editorControls.Select(t[i], true);
+					}
 				}
 			}
 		}
@@ -104,8 +112,8 @@ namespace Airborne_EditorPlus
 			if (Input.GetMouseButton(0))
 			{
 				Vector3 pos;
-				pos.x = Mathf.Clamp(editorControls.mainCam.transform.position.x - (Input.GetAxisRaw("Mouse X") / (1.5f * (editorControls.mainCam.fieldOfView / 36))), -86.1f, 86.1f);
-				pos.y = Mathf.Clamp(editorControls.mainCam.transform.position.y - (Input.GetAxisRaw("Mouse Y") / (1.5f * (editorControls.mainCam.fieldOfView / 36))), -78, 78);
+				pos.x = Mathf.Clamp(editorControls.mainCam.transform.position.x - (Input.GetAxisRaw("Mouse X") / 1.5f), -86.1f, 86.1f);
+				pos.y = Mathf.Clamp(editorControls.mainCam.transform.position.y - (Input.GetAxisRaw("Mouse Y") / 1.5f), -78, 78);
 				pos.z = -32;
 				editorControls.mainCam.transform.position = pos;
 			}
@@ -117,19 +125,48 @@ namespace Airborne_EditorPlus
 				editorControls.selectedObject = lastSelected;
 			}
 		}
+	}
+}
 
-		public void HandleZoom()
-		{
-			if (!editorControls.cantScroll && !Input.GetKey(KeyCode.LeftControl))
-			{
-				Vector3 pos;
-				pos.x = Mathf.Clamp(editorControls.mainCam.transform.position.x - (Input.GetAxisRaw("Mouse X") * Input.GetAxisRaw("Mouse ScrollWheel")), -86.1f, 86.1f);
-				pos.y = Mathf.Clamp(editorControls.mainCam.transform.position.y - (Input.GetAxisRaw("Mouse Y") * Input.GetAxisRaw("Mouse ScrollWheel")), -78, 78);
-				pos.z = -32;
+// GPTGrid
+public class TiledGrid : MonoBehaviour
+{
+	public Color lineColor = new Color(1f, 1f, 1f, 0.3f);
 
-				editorControls.mainCam.transform.position = pos;
+	private GameObject tiledGrid;
+	private Material gridMat;
 
-			}
-		}
+	EditorPlus editorPlus = new();
+
+	public void Load()
+	{
+		// 1. Create a simple white 1x1 texture for the lines
+		Texture2D tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+		tex.SetPixel(0, 0, Color.white);
+		tex.Apply();
+
+		// 2. Create quad
+		tiledGrid = GameObject.CreatePrimitive(PrimitiveType.Quad);
+		tiledGrid.name = "tiledGrid";
+		tiledGrid.transform.position = Vector3.zero;
+		tiledGrid.transform.localScale = new Vector3(10, 10, 1); // world size of quad
+
+		// 3. Create material
+		gridMat = new Material(Shader.Find("Unlit/Texture"));
+		gridMat.mainTexture = tex;
+		gridMat.color = lineColor;
+
+		tiledGrid.GetComponent<Renderer>().material = gridMat;
+
+		// 4. Set tiling
+		UpdateTiling();
+	}
+
+	void UpdateTiling()
+	{
+		// How many repeats per quad based on tile size
+		float repeatsX = tiledGrid.transform.localScale.x / editorPlus.snapSize;
+		float repeatsY = tiledGrid.transform.localScale.y / editorPlus.snapSize;
+		gridMat.mainTextureScale = new Vector2(repeatsX, repeatsY);
 	}
 }
